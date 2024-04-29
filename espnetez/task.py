@@ -41,6 +41,8 @@ from espnet2.tasks.tts import TTSTask
 from espnet2.tasks.uasr import UASRTask
 from espnet2.train.distributed_utils import DistributedOption
 
+from espnetez.dataset import ESPnetEZDataset
+
 TASK_CLASSES = dict(
     asr=ASRTask,
     asr_transducer=ASRTransducerTask,
@@ -301,6 +303,11 @@ def get_ez_task_with_dataset(task_name: str) -> AbsTask:
                 ds = cls.valid_dataset
             else:
                 raise ValueError(f"Invalid mode: {mode}")
+            
+            if isinstance(ds, ESPnetEZDataset):
+                # TODO(jhan): check with masao if non-espnetez dataset is acceptable, if not, use 'assert' instead of 'if'
+                # TODO(jhan): check with masao to integrate with other build iterators functions
+                ds.preprocess = preprocess_fn 
 
             if hasattr(ds, "apply_utt2category") and ds.apply_utt2category:
                 kwargs.update(batch_size=1)
