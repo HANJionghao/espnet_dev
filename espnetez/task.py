@@ -178,6 +178,9 @@ def get_ez_task_with_dataset(task_name: str) -> AbsTask:
             else:
                 raise ValueError(f"Invalid mode: {mode}")
 
+            if isinstance(dataset, ESPnetEZDataset):
+                dataset.preprocess=iter_options.preprocess_fn
+
             cls.check_task_requirements(
                 dataset, args.allow_variable_data_keys, train=iter_options.train
             )
