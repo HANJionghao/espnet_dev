@@ -35,32 +35,26 @@ class SingingGenerate:
         >>> import soundfile
         >>> import numpy as np
         >>> svs = SingingGenerate("config.yml", "model.pth")
-        >>> batch = [
-                (
-                    "score",
-                    (
-                        75, # tempo
-                        [
-                            (0.0, 0.25, "r_en", 63.0, "r_en"),
-                            (0.25, 0.5, "—", 63.0, "en"),
-                        ],
-                    ),
+        >>> batch = {
+            "score": (
+                75,  # tempo
+                [
+                    (0.0, 0.25, "r_en", 63.0, "r_en"),
+                    (0.25, 0.5, "—", 63.0, "en"),
+                ],
+            ),
+            "text": "r en en",
+            "label": (
+                np.array(
+                    [
+                        [0.0, 0.125],
+                        [0.125, 0.25],
+                        [0.25, 0.375],
+                    ]
                 ),
-                ("text", "r en en"),
-                (
-                    "label",
-                    (
-                        np.array(
-                            [
-                                [0.0, 0.125],
-                                [0.125, 0.25],
-                                [0.25, 0.375],
-                            ]
-                        ),
-                        ["r", "en", "en"],
-                    ),
-                ),
-            ]
+                ["r", "en", "en"],
+            ),
+        }
         >>> output_dict = svs(**batch)
         >>> soundfile.write("out.wav", output_dict["wav"].numpy(), svs.fs, "PCM_16")
     """
