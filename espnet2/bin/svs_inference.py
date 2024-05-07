@@ -55,7 +55,7 @@ class SingingGenerate:
                 ["r", "en", "en"],
             ),
         }
-        >>> output_dict = svs(**batch)
+        >>> output_dict = svs(batch)
         >>> soundfile.write("out.wav", output_dict["wav"].numpy(), svs.fs, "PCM_16")
     """
 
