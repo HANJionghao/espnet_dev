@@ -1533,32 +1533,26 @@ Currently, the tags of espnet_model_zoo are supported.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">soundfile</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">svs</span> <span class="o">=</span> <span class="n">SingingGenerate</span><span class="p">(</span><span class="s2">&quot;config.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;model.pth&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">batch</span> <span class="o">=</span> <span class="p">[</span>
-<span class="go">        (</span>
-<span class="go">            &quot;score&quot;,</span>
-<span class="go">            (</span>
-<span class="go">                75, # tempo</span>
-<span class="go">                [</span>
-<span class="go">                    (0.0, 0.25, &quot;r_en&quot;, 63.0, &quot;r_en&quot;),</span>
-<span class="go">                    (0.25, 0.5, &quot;—&quot;, 63.0, &quot;en&quot;),</span>
-<span class="go">                ],</span>
-<span class="go">            ),</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">batch</span> <span class="o">=</span> <span class="p">{</span>
+<span class="go">    &quot;score&quot;: (</span>
+<span class="go">        75,  # tempo</span>
+<span class="go">        [</span>
+<span class="go">            (0.0, 0.25, &quot;r_en&quot;, 63.0, &quot;r_en&quot;),</span>
+<span class="go">            (0.25, 0.5, &quot;—&quot;, 63.0, &quot;en&quot;),</span>
+<span class="go">        ],</span>
+<span class="go">    ),</span>
+<span class="go">    &quot;text&quot;: &quot;r en en&quot;,</span>
+<span class="go">    &quot;label&quot;: (</span>
+<span class="go">        np.array(</span>
+<span class="go">            [</span>
+<span class="go">                [0.0, 0.125],</span>
+<span class="go">                [0.125, 0.25],</span>
+<span class="go">                [0.25, 0.375],</span>
+<span class="go">            ]</span>
 <span class="go">        ),</span>
-<span class="go">        (&quot;text&quot;, &quot;r en en&quot;),</span>
-<span class="go">        (</span>
-<span class="go">            &quot;label&quot;,</span>
-<span class="go">            (</span>
-<span class="go">                np.array(</span>
-<span class="go">                    [</span>
-<span class="go">                        [0.0, 0.125],</span>
-<span class="go">                        [0.125, 0.25],</span>
-<span class="go">                        [0.25, 0.375],</span>
-<span class="go">                    ]</span>
-<span class="go">                ),</span>
-<span class="go">                [&quot;r&quot;, &quot;en&quot;, &quot;en&quot;],</span>
-<span class="go">            ),</span>
-<span class="go">        ),</span>
-<span class="go">    ]</span>
+<span class="go">        [&quot;r&quot;, &quot;en&quot;, &quot;en&quot;],</span>
+<span class="go">    ),</span>
+<span class="go">}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output_dict</span> <span class="o">=</span> <span class="n">svs</span><span class="p">(</span><span class="o">**</span><span class="n">batch</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">soundfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;out.wav&quot;</span><span class="p">,</span> <span class="n">output_dict</span><span class="p">[</span><span class="s2">&quot;wav&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">svs</span><span class="o">.</span><span class="n">fs</span><span class="p">,</span> <span class="s2">&quot;PCM_16&quot;</span><span class="p">)</span>
 </pre></div>

@@ -249,32 +249,26 @@
 <span class="sd">        &gt;&gt;&gt; import soundfile</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">        &gt;&gt;&gt; svs = SingingGenerate(&quot;config.yml&quot;, &quot;model.pth&quot;)</span>
-<span class="sd">        &gt;&gt;&gt; batch = [</span>
-<span class="sd">                (</span>
-<span class="sd">                    &quot;score&quot;,</span>
-<span class="sd">                    (</span>
-<span class="sd">                        75, # tempo</span>
-<span class="sd">                        [</span>
-<span class="sd">                            (0.0, 0.25, &quot;r_en&quot;, 63.0, &quot;r_en&quot;),</span>
-<span class="sd">                            (0.25, 0.5, &quot;—&quot;, 63.0, &quot;en&quot;),</span>
-<span class="sd">                        ],</span>
-<span class="sd">                    ),</span>
+<span class="sd">        &gt;&gt;&gt; batch = {</span>
+<span class="sd">            &quot;score&quot;: (</span>
+<span class="sd">                75,  # tempo</span>
+<span class="sd">                [</span>
+<span class="sd">                    (0.0, 0.25, &quot;r_en&quot;, 63.0, &quot;r_en&quot;),</span>
+<span class="sd">                    (0.25, 0.5, &quot;—&quot;, 63.0, &quot;en&quot;),</span>
+<span class="sd">                ],</span>
+<span class="sd">            ),</span>
+<span class="sd">            &quot;text&quot;: &quot;r en en&quot;,</span>
+<span class="sd">            &quot;label&quot;: (</span>
+<span class="sd">                np.array(</span>
+<span class="sd">                    [</span>
+<span class="sd">                        [0.0, 0.125],</span>
+<span class="sd">                        [0.125, 0.25],</span>
+<span class="sd">                        [0.25, 0.375],</span>
+<span class="sd">                    ]</span>
 <span class="sd">                ),</span>
-<span class="sd">                (&quot;text&quot;, &quot;r en en&quot;),</span>
-<span class="sd">                (</span>
-<span class="sd">                    &quot;label&quot;,</span>
-<span class="sd">                    (</span>
-<span class="sd">                        np.array(</span>
-<span class="sd">                            [</span>
-<span class="sd">                                [0.0, 0.125],</span>
-<span class="sd">                                [0.125, 0.25],</span>
-<span class="sd">                                [0.25, 0.375],</span>
-<span class="sd">                            ]</span>
-<span class="sd">                        ),</span>
-<span class="sd">                        [&quot;r&quot;, &quot;en&quot;, &quot;en&quot;],</span>
-<span class="sd">                    ),</span>
-<span class="sd">                ),</span>
-<span class="sd">            ]</span>
+<span class="sd">                [&quot;r&quot;, &quot;en&quot;, &quot;en&quot;],</span>
+<span class="sd">            ),</span>
+<span class="sd">        }</span>
 <span class="sd">        &gt;&gt;&gt; output_dict = svs(**batch)</span>
 <span class="sd">        &gt;&gt;&gt; soundfile.write(&quot;out.wav&quot;, output_dict[&quot;wav&quot;].numpy(), svs.fs, &quot;PCM_16&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
