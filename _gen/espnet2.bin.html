@@ -1553,7 +1553,7 @@ Currently, the tags of espnet_model_zoo are supported.</p>
 <span class="go">        [&quot;r&quot;, &quot;en&quot;, &quot;en&quot;],</span>
 <span class="go">    ),</span>
 <span class="go">}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output_dict</span> <span class="o">=</span> <span class="n">svs</span><span class="p">(</span><span class="o">**</span><span class="n">batch</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_dict</span> <span class="o">=</span> <span class="n">svs</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">soundfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;out.wav&quot;</span><span class="p">,</span> <span class="n">output_dict</span><span class="p">[</span><span class="s2">&quot;wav&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">svs</span><span class="o">.</span><span class="n">fs</span><span class="p">,</span> <span class="s2">&quot;PCM_16&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
