@@ -327,7 +327,7 @@ class SingingGenerate:
                 vocoder_tag = vocoder_tag.replace("parallel_wavegan/", "")
                 vocoder_file = download_pretrained_model(vocoder_tag)
                 vocoder_config = Path(vocoder_file).parent / "config.yml"
-                kwargs.update(vocoder_config=vocoder_config, vocoder_file=vocoder_file)
+                kwargs.update(vocoder_config=vocoder_config, vocoder_checkpoint=vocoder_file)
 
             else:
                 raise ValueError(f"{vocoder_tag} is unsupported format.")
