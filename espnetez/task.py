@@ -310,7 +310,7 @@ def get_ez_task_with_dataset(task_name: str) -> AbsTask:
             if isinstance(ds, ESPnetEZDataset):
                 # TODO(jhan): check with masao if non-espnetez dataset is acceptable, if not, use 'assert' instead of 'if'
                 # TODO(jhan): check with masao to integrate with other build iterators functions
-                ds.preprocess = preprocess_fn 
+                ds.preprocess = preprocess_fn
 
             if hasattr(ds, "apply_utt2category") and ds.apply_utt2category:
                 kwargs.update(batch_size=1)
