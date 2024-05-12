@@ -180,7 +180,8 @@ class HiFiGANGenerator(torch.nn.Module):
         def _remove_weight_norm(m: torch.nn.Module):
             try:
                 logging.debug(f"Weight norm is removed from {m}.")
-                torch.nn.utils.remove_weight_norm(m)
+                torch.nn.utils.parametrize.remove_parametrizations(m, "weight") 
+                # NOTE(jhan): will remove all parametrizations
             except ValueError:  # this module didn't have weight norm
                 return
 
@@ -338,7 +339,7 @@ class HiFiGANPeriodDiscriminator(torch.nn.Module):
 
         def _apply_weight_norm(m: torch.nn.Module):
             if isinstance(m, torch.nn.Conv2d):
-                torch.nn.utils.weight_norm(m)
+                torch.nn.utils.parametrizations.weight_norm(m)
                 logging.debug(f"Weight norm is applied to {m}.")
 
         self.apply(_apply_weight_norm)
@@ -583,7 +584,8 @@ class HiFiGANScaleDiscriminator(torch.nn.Module):
         def _remove_weight_norm(m):
             try:
                 logging.debug(f"Weight norm is removed from {m}.")
-                torch.nn.utils.remove_weight_norm(m)
+                torch.nn.utils.parametrize.remove_parametrizations(m, "weight") 
+                # NOTE(jhan): will remove all parametrizations
             except ValueError:  # this module didn't have weight norm
                 return
 

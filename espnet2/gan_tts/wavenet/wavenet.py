@@ -158,7 +158,7 @@ class WaveNet(torch.nn.Module):
         def _remove_weight_norm(m: torch.nn.Module):
             try:
                 logging.debug(f"Weight norm is removed from {m}.")
-                torch.nn.utils.remove_weight_norm(m)
+                torch.nn.utils.parametrize.remove_parametrizations(m, "weight")
             except ValueError:  # this module didn't have weight norm
                 return
 
