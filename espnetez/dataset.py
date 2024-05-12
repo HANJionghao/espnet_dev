@@ -28,8 +28,8 @@ class ESPnetEZDataset(AbsDataset):
         if self.preprocess is None:
             data = {k: v(self.dataset[idx]) for k, v in self.data_info.items()}
         else:
-            # TODO(jhan): upon this change, existing espnetez demos should be updated with use_preprocess=False 
-            # when not using kaldi files as inputs; because when using existing datasets (not kaldi files), 
+            # TODO(jhan): upon this change, existing espnetez demos should be updated with use_preprocess=False
+            # when not using kaldi files as inputs; because when using existing datasets (not kaldi files),
             # the "preprocessor" part (e.g. tokenizations) is defined with data_info already
 
             data = self.preprocess(
