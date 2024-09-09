@@ -1,5 +1,8 @@
 # general
 *~
+*.log
+*.scp
+dump*
 *.pyc
 \#*\#
 .\#*
