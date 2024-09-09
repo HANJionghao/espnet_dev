@@ -49,7 +49,12 @@ from espnet2.torch_utils.pytorch_version import pytorch_cudnn_version
 from espnet2.torch_utils.set_all_random_seed import set_all_random_seed
 from espnet2.train.abs_espnet_model import AbsESPnetModel
 from espnet2.train.class_choices import ClassChoices
-from espnet2.train.dataset import DATA_TYPES, AbsDataset, ESPnetDataset
+from espnet2.train.dataset import (
+    DATA_TYPES,
+    AbsDataset,
+    ESPnetDataset,
+    ESPnetMultiTaskDataset,
+)
 from espnet2.train.distributed_utils import (
     DistributedOption,
     free_port,
@@ -58,7 +63,10 @@ from espnet2.train.distributed_utils import (
     get_num_nodes,
     resolve_distributed_mode,
 )
-from espnet2.train.iterable_dataset import IterableESPnetDataset
+from espnet2.train.iterable_dataset import (
+    IterableESPnetDataset,
+    SplicedIterableESPnetDataset,
+)
 from espnet2.train.trainer import Trainer
 from espnet2.utils import config_argparse
 from espnet2.utils.build_dataclass import build_dataclass
@@ -281,7 +289,6 @@ class AbsTask(ABC):
     @classmethod
     @typechecked
     def get_parser(cls) -> config_argparse.ArgumentParser:
-
         class ArgumentDefaultsRawTextHelpFormatter(
             argparse.RawTextHelpFormatter,
             argparse.ArgumentDefaultsHelpFormatter,
@@ -441,6 +448,18 @@ class AbsTask(ABC):
             type=str2bool,
             help="Enable sharded training provided by fairscale",
         )
+        group.add_argument(
+            "--use_deepspeed",
+            default=False,
+            type=str2bool,
+            help="Enable deepspeed for training",
+        )
+        group.add_argument(
+            "--deepspeed_config",
+            default=None,
+            type=str,
+            help="deepspeed training config",
+        )
 
         group = parser.add_argument_group("cudnn mode related")
         group.add_argument(
@@ -460,6 +479,12 @@ class AbsTask(ABC):
             type=str2bool,
             default=True,
             help="Enable cudnn-deterministic mode",
+        )
+        group.add_argument(
+            "--use_tf32",
+            type=str2bool,
+            default=False,
+            help="Enable TensorFloat32 on CUDA and CUDNN",
         )
 
         group = parser.add_argument_group("collect stats mode related")
@@ -892,6 +917,14 @@ class AbsTask(ABC):
             default=[],
         )
         group.add_argument(
+            "--multi_task_dataset",
+            type=str2bool,
+            default=False,
+            help="If true, input data is organized by json file. "
+            "This is usually used for multi-task training, like SpeechLM task"
+            "e.g., --train_data_path_and_name_and_type foo.json,foo_task,json",
+        )
+        group.add_argument(
             "--allow_variable_data_keys",
             type=str2bool,
             default=False,
@@ -1281,6 +1314,15 @@ class AbsTask(ABC):
             logging.info("Invoking torch.autograd.set_detect_anomaly(True)")
             torch.autograd.set_detect_anomaly(args.detect_anomaly)
 
+        if args.use_tf32:
+            # Accelerate matmul at the cost of precision.
+            # Only effective with Ampere GPUs and above
+            # https://pytorch.org/docs/stable/notes/cuda.html
+            assert not args.use_amp, "amp is not compatible with tf32"
+            torch.backends.cuda.matmul.allow_tf32 = True
+            torch.backends.cudnn.allow_tf32 = True
+            logging.info(f"Using TensorFloat32 at the cost of matmul precision")
+
         if (
             args.collect_stats
             and getattr(args, "model_conf", None) is not None
@@ -1387,6 +1429,7 @@ class AbsTask(ABC):
                     preprocess_fn=cls.build_preprocess_fn(args, train=False),
                     collate_fn=cls.build_collate_fn(args, train=False),
                     mode="train",
+                    multi_task_dataset=args.multi_task_dataset,
                 ),
                 valid_iter=cls.build_streaming_iterator(
                     data_path_and_name_and_type=args.valid_data_path_and_name_and_type,
@@ -1399,6 +1442,7 @@ class AbsTask(ABC):
                     preprocess_fn=cls.build_preprocess_fn(args, train=False),
                     collate_fn=cls.build_collate_fn(args, train=False),
                     mode="valid",
+                    multi_task_dataset=args.multi_task_dataset,
                 ),
                 output_dir=output_dir,
                 ngpu=args.ngpu,
@@ -1496,6 +1540,23 @@ class AbsTask(ABC):
 
             # Don't give args to trainer.run() directly!!!
             # Instead of it, define "Options" object and build here.
+
+            if args.use_deepspeed:
+                if not distributed_option.distributed:
+                    logging.warning(
+                        "DeepSpeed is for distributed training. E.g., --ngpu > 1 "
+                        "Switch back to the normal trainer."
+                    )
+                elif cls.trainer != Trainer:
+                    raise ValueError(
+                        "only default trainer is compatible with deepspeed"
+                    )
+                else:
+                    from espnet2.train.deepspeed_trainer import DeepSpeedTrainer
+
+                    cls.trainer = DeepSpeedTrainer
+                    distributed_option.init_deepspeed()
+
             trainer_options = cls.trainer.build_options(args)
             cls.trainer.run(
                 model=model,
@@ -1679,7 +1740,12 @@ class AbsTask(ABC):
         cls, args: argparse.Namespace, iter_options: IteratorOptions, mode: str
     ) -> AbsIterFactory:
 
-        dataset = ESPnetDataset(
+        if args.multi_task_dataset:
+            dataset_class = ESPnetMultiTaskDataset
+        else:
+            dataset_class = ESPnetDataset
+
+        dataset = dataset_class(
             iter_options.data_path_and_name_and_type,
             float_dtype=args.train_dtype,
             preprocess=iter_options.preprocess_fn,
@@ -2053,6 +2119,7 @@ class AbsTask(ABC):
         ngpu: int = 0,
         inference: bool = False,
         mode: Optional[str] = None,
+        multi_task_dataset: bool = False,
     ) -> DataLoader:
         """Build DataLoader using iterable dataset"""
         # For backward compatibility for pytorch DataLoader
@@ -2061,12 +2128,17 @@ class AbsTask(ABC):
         else:
             kwargs = {}
 
-        dataset = IterableESPnetDataset(
+        if multi_task_dataset:
+            dataset_class = ESPnetMultiTaskDataset
+        else:
+            dataset_class = IterableESPnetDataset
+        dataset = dataset_class(
             data_path_and_name_and_type,
             float_dtype=dtype,
             preprocess=preprocess_fn,
             key_file=key_file,
         )
+
         if dataset.apply_utt2category:
             kwargs.update(batch_size=1)
         else:
@@ -2080,6 +2152,7 @@ class AbsTask(ABC):
             dataset=dataset,
             pin_memory=ngpu > 0,
             num_workers=num_workers,
+            sampler=getattr(dataset, "example_list", None),
             **kwargs,
         )
 
@@ -2135,7 +2208,7 @@ class AbsTask(ABC):
             try:
                 model.load_state_dict(
                     torch.load(model_file, map_location=device),
-                    strict=not use_adapter,
+                    strict=False,
                 )
             except RuntimeError:
                 # Note(simpleoier): the following part is to be compatible with
