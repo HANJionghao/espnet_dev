@@ -17,6 +17,8 @@ jp_datasets = [
     "kiritan",
     "oniku",
     "ofuton",
+    "namine",
+    "natsume",
 ]
 
 zh_datasets = [

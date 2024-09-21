@@ -297,17 +297,6 @@ def process_utterance(
     phn_dur = phn_dur.split(" ")
     keep = keep.split(" ")
 
-     # unify format of slience phonemes
-    new_phns = []
-    for phn in phns:
-        if phn == "AP":
-            new_phns.append("<AP>")
-        elif phn == "SP":
-            new_phns.append("<SP>")
-        else:
-            new_phns.append(phn)
-    phns = new_phns
-
     # load tempo from midi
     id = int(uid[0:4])
     tempo = tempos[id]
