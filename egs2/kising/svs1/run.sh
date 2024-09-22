@@ -19,7 +19,7 @@ opts="--audio_format wav "
 
 train_set="tr_no_dev"
 valid_set="dev"
-test_set="test"
+test_set="eval"
 test_sets="${valid_set} ${test_set}"
 dataset="all"
 

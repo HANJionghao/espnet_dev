@@ -139,12 +139,12 @@ def convert(
     pre_head_phn = None 
 
     for i in range(len(score)):
-        lyric = score[i][2]
+        lyric = score[i][2].replace("_", "")
 
         if lyric in sli: # silence case
             new_labels.append([labels[index][0], labels[index][1], lyric])
             continue
-        elif lyric == "—": # slur case
+        elif lyric in ["-", "—"]: # slur case
             phn = new_labels[-1][2]
             score[i][4] = phn
             new_labels.append([labels[index][0], labels[index][1], phn])
@@ -168,7 +168,10 @@ def convert(
             if pre_head_phn is None:
                 if lyric in aux_ace_dict: 
                     lyric = aux_ace_dict[lyric][0]
-            pro_phns = tokenizer(lyric)
+            if i != 0 and dataset == "kising" and len(prev_lyrics := score[i-1][2].split("_")) == 2 and prev_lyrics[-1] == lyric:
+                pro_phns = [tokenizer(prev_lyrics[0] + lyric)[-1]]
+            else:
+                pro_phns = tokenizer(lyric)
         # print("{}, {}".format(lyric, pro_phns))
 
         set_phn_type = 0
